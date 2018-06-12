@@ -39,15 +39,21 @@ namespace player.Entities.Players
                 }
 
                 var ball = FindObjectInView("ball");
-                while (ball.Distance.Value < 10)
+                while (ball.Distance.Value < 15)
                 {
                     isInGoal = false;
                     m_robot.Dash(100);
                     Thread.Sleep(100);
                     ball = FindObjectInView("ball");
-                    if (ball.Distance.Value < 1.5)
+                    if (ball.Distance.Value < 1.885)
                     {
-                        m_robot.Kick(100, 90);
+                        int angle = 30;
+                        if (IsPointingAt("flag b l 40",30) || IsPointingAt("flag t r 40", 30))
+                        {
+                            m_robot.Kick(100, -angle);
+                        }
+                        m_robot.Kick(100, angle);
+                        break;
                     }
                 }
             }
@@ -173,6 +179,19 @@ namespace player.Entities.Players
                 }
             }
             return myObj;
+        }
+
+        private bool IsPointingAt(string objName, double offset)
+        {
+            m_memory.waitForNewInfo();
+            SeenObject myObj = null;
+
+            myObj = m_memory.GetSeenObject(objName);
+            if (myObj == null)
+            {
+                return false;
+            }
+            return Math.Abs(myObj.Direction.Value) < offset;
         }
     }
 }

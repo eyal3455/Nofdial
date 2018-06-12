@@ -10,7 +10,7 @@ namespace RoboCup
     public class Memory
     {
         // Private members
-        volatile private VisualInfo m_info;	// place where all information is stored
+        volatile private VisualInfo m_info;	// place where all information is stored 
         volatile private SenseBodyInfo m_bodyInfo;	// place where all information is stored
         const int SIMULATOR_STEP = 100;
         const int WAIT_FOR_MSG_TIME = 10;

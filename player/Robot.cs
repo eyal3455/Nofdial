@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using TinMan;
+using System.Text.RegularExpressions;
+using RoboCup.Infrastructure;
 
 namespace RoboCup
 {
@@ -17,12 +19,16 @@ namespace RoboCup
         private IPEndPoint endPoint;
         private Thread m_parser;
         private readonly Memory m_playerMemory;
+        public int goalCounter_r;
+        public int goalCounter_l;
 
         public Robot(Memory memory)
         {
             endPoint = new IPEndPoint(IPAddress.Parse(SoccerParams.m_host), SoccerParams.m_port);
             udpClient = new UdpClient();
             m_playerMemory = memory;
+            goalCounter_r = 0;
+            goalCounter_l = 0;
         }
 
         public void Init(string team, out char side, out int num, out String playMode)
@@ -119,7 +125,14 @@ namespace RoboCup
         // This function parses hear information
         private void parseHear(String message)
         {
-            
+            if (message.Contains("goal_l"))
+            {
+                goalCounter_l++;
+            }
+            if (message.Contains("goal_r"))
+            {
+                goalCounter_r++;
+            }
 
             //// get hear information
             //StringTokenizer tokenizer = new StringTokenizer(message, "() ");

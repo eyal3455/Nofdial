@@ -14,7 +14,8 @@ namespace RoboCup
         // Public members
         public int m_time;
         public string m_message;
-        public Dictionary<String, SeenObject> m_seenObjects;
+        //public Dictionary<String, SeenObject> m_seenObjects;
+        public List<SeenObject> m_seenObjects;
 
         //===========================================================================
         // Private members
@@ -25,7 +26,7 @@ namespace RoboCup
         public VisualInfo(String info)
         {
             m_message = info;
-            m_seenObjects = new Dictionary<String, SeenObject>();
+            m_seenObjects = new List<SeenObject>();
 
             info.Trim();
             m_info = info.ToCharArray();
@@ -35,7 +36,7 @@ namespace RoboCup
         {
             if (!m_message.StartsWith("(see"))
                 return;
-
+            
             var objectsMatch = Regex.Matches(m_message, MagicPattern);
             for (int i = 0; i < objectsMatch.Count; i++)
             {
@@ -45,7 +46,11 @@ namespace RoboCup
                 var parameters = innerObjects[1].Substring(1).Split(' ');
                 var floatParams = parameters.Select(strParam => float.Parse(strParam)).ToArray();
                 var seenObject = new SeenObject(name, floatParams);
-                m_seenObjects.Add(name, seenObject);            
+                lock (m_seenObjects)
+                {
+                    m_seenObjects.Add(seenObject);
+                }
+
             }
         }
 

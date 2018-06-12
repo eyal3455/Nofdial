@@ -18,6 +18,8 @@ namespace RoboCup
             var players = new List<Player>();
             players.Add(new AttackerExample(team, coach));
             players.Add(new AttackerExample(team, coach));
+            players.Add(new AttackerExample(team, coach));
+            players.Add(new AttackerExample(team, coach));
 
             return players;
         }
@@ -25,6 +27,8 @@ namespace RoboCup
         public List<Player> InitDefenders(Team team, ICoach coach)
         {
             var players = new List<Player>();
+            players.Add(new DefenderExample(team, coach));
+            players.Add(new DefenderExample(team, coach));
             players.Add(new DefenderExample(team, coach));
             players.Add(new DefenderExample(team, coach));
 

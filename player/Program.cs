@@ -13,15 +13,16 @@ namespace RoboCup
     {
        static  void Main(string[] args)
         {
-            var team1 = new Team(args);
-            foreach (var arg in args)
-            {
-                if (String.Compare(arg, "AddOpponent", StringComparison.InvariantCultureIgnoreCase) == 0)
-                {
-                    var team2 = new Team(new string[] { "TeamName=DummyOpponent" });
-                    break;
-                }
-            }
+            var team1 = new Team(new string[]{ "Strategy=Attack", "TeamName=Attackers" });
+            var team2 = new Team(new string[]{ "Strategy=Defend", "TeamName=Defenders" });
+            //foreach (var arg in args)
+            //{
+            //    if (String.Compare(arg, "AddOpponent", StringComparison.InvariantCultureIgnoreCase) == 0)
+            //    {
+            //        var team2 = new Team(new string[] { "TeamName=DummyOpponent" });
+            //        break;
+            //    }
+            //}
             
             Console.ReadKey();
         }

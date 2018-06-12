@@ -15,7 +15,7 @@ namespace RoboCup
         public IFormation m_teamFormation;
         public Coach m_coach;
 
-        Strategies stratgey = Strategies.None;
+        public Strategies m_stratgey = Strategies.None;
 
         public Team(string[] args)
         {
@@ -30,7 +30,7 @@ namespace RoboCup
                 if (arg.ToLower().StartsWith("strategy="))
                 {
                     var results = arg.Split(new string[] {"="}, StringSplitOptions.RemoveEmptyEntries);
-                    stratgey = (Strategies)Enum.Parse(typeof(Strategies), results[1]);
+                    m_stratgey = (Strategies)Enum.Parse(typeof(Strategies), results[1]);
                 }
 
             }
@@ -42,7 +42,7 @@ namespace RoboCup
 
             m_coach = new Coach();
             m_teamFormation = new Formation_4_4_2();
-            m_playerList = m_teamFormation.InitTeam(stratgey, this, m_coach);
+            m_playerList = m_teamFormation.InitTeam(m_stratgey, this, m_coach);
         }
     }
 }

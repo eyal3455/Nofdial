@@ -12,7 +12,7 @@ namespace RoboCup
        public const int m_port = 6000;          // server port
        public const int m_coachPort = 6001;         // coach port
        public const string m_host = "127.0.0.1";	// Server address
-       public const string m_teamName = "Yossi";		// team name
+       public const string m_teamName = "Belgium";		// team name
        public const int simulator_step = 100;
     }
 }

@@ -22,26 +22,36 @@ namespace player.Entities.Players
         public Goalkeeper(Team team, ICoach coach)
             : base(team, coach)
         {
-            m_startPosition = new PointF(m_sideFactor * 30, 20);
+            m_startPosition = new PointF(m_sideFactor * 100, 0);
         }
 
         public override void play()
         {
             m_robot.Move(m_startPosition.X, m_startPosition.Y);
 
+            bool isInGoal = false;
             while (!m_timeOver)
             {
-                var myGoal = GetMyGoal();
-                while (myGoal.Distance.Value > 10)
+                if (!isInGoal)
                 {
-                    //m_robot.Turn(myGoal.Direction.Value);
+                    MoveToMyGoal();
+                    isInGoal = true;
+                }
+
+                var ball = FindObjectInView("ball");
+                while (ball.Distance.Value < 10)
+                {
+                    isInGoal = false;
                     m_robot.Dash(100);
                     Thread.Sleep(100);
-                    myGoal = GetMyGoal();
+                    ball = FindObjectInView("ball");
+                    if (ball.Distance.Value < 1.5)
+                    {
+                        m_robot.Kick(100, 90);
+                    }
                 }
             }
-            // first ,ove to start position
-            
+            while (true) { }
 
             while (!m_timeOver)
             {
@@ -126,23 +136,43 @@ namespace player.Entities.Players
             return bodyInfo;
         }
 
+        private void MoveToMyGoal()
+        {
+            var myGoal = GetMyGoal();
+            while (myGoal.Distance.Value > 1)
+            {
+                //m_robot.Turn(myGoal.Direction.Value);
+                m_robot.Dash(100);
+                Thread.Sleep(100);
+                myGoal = GetMyGoal();
+            }
+        }
+
         private SeenObject GetMyGoal()
         {
             SeenObject goal = null;
-            while (goal == null)
-            {
-                m_memory.waitForNewInfo();
-                if (m_side == 'l')
-                    goal = m_memory.GetSeenObject("goal l");
-                else
-                    goal = m_memory.GetSeenObject("goal r");
 
-                if (goal == null)
+            if (m_side == 'l')
+                goal = FindObjectInView("goal l");
+            else
+                goal = FindObjectInView("goal r");
+
+            return goal;
+        }
+
+        private SeenObject FindObjectInView(string objName)
+        {
+            m_memory.waitForNewInfo();
+            SeenObject myObj = null;
+            while (myObj == null)
+            {
+                myObj = m_memory.GetSeenObject(objName);
+                if (myObj == null)
                 {
                     m_robot.Turn(10);
                 }
             }
-            return goal;
+            return myObj;
         }
     }
 }

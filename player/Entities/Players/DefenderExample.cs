@@ -8,11 +8,14 @@ namespace RoboCup
 {
     public class DefenderExample : Player
     {
+        private PointF m_PosOfLastKick;
+
         public DefenderExample(Team team, ICoach coach, PlayerSide side)
             : base(team, coach)
         {
             m_startPosition = new PointF(m_sideFactor * 30, 0);
             m_PlayerSide = side;
+            m_PosOfLastKick = new PointF(-100, -100);
         }
 
         public override void play()
@@ -58,16 +61,31 @@ namespace RoboCup
                     // if the ball far, dash to it
                     if (distToBall > Consts.KICKABLE_AREA)
                     {
-                        m_robot.Dash(10 * distToBall);
+                        m_robot.Dash(10 * Math.Pow(distToBall, 3));
                     }
                     else // if the ball is close - kick it
                     {
                         PointF opponentGoal = m_side == 'l' ? Consts.goal_r : Consts.goal_l;
+                        PointF myGoal = m_side == 'l' ? Consts.goal_l : Consts.goal_r;
                         var angleToGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, opponentGoal.X, opponentGoal.Y);
+                        var angleToMyGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, myGoal.X, myGoal.Y);
+                        if (CommonTools.GetDistance(my_data.Pos, m_PosOfLastKick) > 1)
+                        {
+                            m_PosOfLastKick = my_data.Pos.Value;
+                            m_robot.Kick(100, angleToGoal);
+                        }
+                        else
+                        {
+                            if (angleToMyGoal > 0)
+                            {
+                                m_robot.Kick(100, -90);
+                            }
+                            else
+                            {
+                                m_robot.Kick(100, 90);
+                            }
 
-                        //m_robot.Turn(angleToGoal);
-                        //m_memory.waitForNewInfo();
-                        m_robot.Kick(100, angleToGoal);
+                        }
                     }
                 }
                 else // ball on opponent side - go to defenders area

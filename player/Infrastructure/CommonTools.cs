@@ -13,7 +13,7 @@ namespace RoboCup.Infrastructure
         public static double GetRelativeAngle(float? bodyAngle, PointF? pos, float trg__pos_x, float trg__pos_y)
         {
 
-            double direction = Math.Atan2(trg__pos_y - pos.Value.Y, trg__pos_x - pos.Value.X) / Math.PI * 360;
+            double direction = Math.Atan2(trg__pos_y - pos.Value.Y, trg__pos_x - pos.Value.X) / Math.PI * 180;
             double angleToTurn = direction - bodyAngle.Value;
 
             if (angleToTurn > 180)

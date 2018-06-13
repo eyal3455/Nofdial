@@ -8,13 +8,11 @@ namespace RoboCup
 {
     public class DefenderExample : Player
     {
-        public enum DefenderSide { LEFT, RIGHT };
-        private DefenderSide m_DefSide;
-        public DefenderExample(Team team, ICoach coach, DefenderSide side)
+        public DefenderExample(Team team, ICoach coach, PlayerSide side)
             : base(team, coach)
         {
             m_startPosition = new PointF(m_sideFactor * 30, 0);
-            m_DefSide = side;
+            m_PlayerSide = side;
         }
 
         public override void play()
@@ -24,16 +22,16 @@ namespace RoboCup
 
             while (!m_timeOver)
             {
-                SeenObject ball = null;
-                SeenObject goal = null;
-                //SeenObject goalArea = null;
-                SeenObject fieldCenter = null;
-
                 //Get current player's info:
                 //var bodyInfo = GetBodyInfo();
                 //Console.WriteLine($"Kicks so far : {bodyInfo.Kick}");
 
                 var ballPosByCoach = m_coach.GetSeenCoachObject("ball");
+                if(ballPosByCoach == null)
+                {
+                    m_memory.waitForNewInfo();
+                    ballPosByCoach = m_coach.GetSeenCoachObject("ball");
+                }
                 if (ballPosByCoach != null && ballPosByCoach.Pos != null)
                 {
                     Console.WriteLine($"Ball Position {ballPosByCoach.Pos.Value.X}, {ballPosByCoach.Pos.Value.Y}");
@@ -80,10 +78,14 @@ namespace RoboCup
 
                     var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
                     var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, flag_pos.X, flag_pos.Y);
+                    var dist = CommonTools.GetDistance(my_data.Pos, flag_pos);
 
-                    m_robot.Turn(angleToTurn);
-                    m_memory.waitForNewInfo();
-                    m_robot.Dash(100);
+                    if (Math.Abs(angleToTurn) > 1)
+                    {
+                        m_robot.Turn(angleToTurn);
+                        m_memory.waitForNewInfo();
+                    }
+                    m_robot.Dash(10 * dist);
                 }
 
 
@@ -123,14 +125,14 @@ namespace RoboCup
             string flag;
             if (m_side == 'l')
             {
-                if (m_DefSide == DefenderSide.LEFT)
+                if (m_PlayerSide == PlayerSide.LEFT)
                     flag = "flag p l t";
                 else
                     flag = "flag p l b";
             }
             else
             {
-                if (m_DefSide == DefenderSide.LEFT)
+                if (m_PlayerSide == PlayerSide.LEFT)
                     flag = "flag p r b";
                 else
                     flag = "flag p r t";
@@ -138,21 +140,7 @@ namespace RoboCup
             return flag;
         }
 
-        private bool BallInSideOurHalf(PointF? pos)
-        {
-            if (pos == null)
-                return false;
-
-            if (m_side == 'l' && pos.Value.X <= 0)
-                return true;
-
-            if (m_side == 'r' && pos.Value.X >= 0)
-                return true;
-
-            return false;
-        }
-
-        
+                
         private SenseBodyInfo GetBodyInfo()
         {
             m_robot.SenseBody();

@@ -17,10 +17,10 @@ namespace RoboCup
         public List<Player> InitAttackers(Team team, ICoach coach)
         {
             var players = new List<Player>();
-            players.Add(new DefenderExample(team, coach, DefenderExample.DefenderSide.RIGHT));
-            players.Add(new DefenderExample(team, coach,DefenderExample.DefenderSide.LEFT));
-            players.Add(new AttackerExample(team, coach));
-            players.Add(new AttackerExample(team, coach));
+            players.Add(new DefenderExample(team, coach, Player.PlayerSide.RIGHT));
+            players.Add(new DefenderExample(team, coach, Player.PlayerSide.LEFT));
+            players.Add(new AttackerExample(team, coach, Player.PlayerSide.RIGHT));
+            players.Add(new AttackerExample(team, coach, Player.PlayerSide.LEFT));
             players.Add(new Goalkeeper(team, coach));
 
             return players;

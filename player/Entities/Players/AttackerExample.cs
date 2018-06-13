@@ -1,98 +1,150 @@
 ﻿using RoboCup.Entities;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using RoboCup.Infrastructure;
-
+using System;
+using System.Drawing;
+using System.Threading;
 
 namespace RoboCup
 {
     public class AttackerExample : Player
     {
-
-        private const int WAIT_FOR_MSG_TIME = 10;
-
-        public AttackerExample(Team team, ICoach coach) 
+        public AttackerExample(Team team, ICoach coach, PlayerSide side)
             : base(team, coach)
         {
             m_startPosition = new PointF(m_sideFactor * 30, 0);
+            m_PlayerSide = side;
         }
 
         public override void play()
         {
-
             // first ,ove to start position
-            m_robot.Move(m_startPosition.X, m_startPosition.Y);
-
-            SeenObject obj,obj_flag;
-            
+            //m_robot.Move(m_startPosition.X, m_startPosition.Y);
+            var rand = new Random();
             while (!m_timeOver)
             {
+                //Get current player's info:
                 //var bodyInfo = GetBodyInfo();
-                
-                obj = m_memory.GetSeenObject("ball");
-                if (obj == null)
+                //Console.WriteLine($"Kicks so far : {bodyInfo.Kick}");
+
+                var ballPosByCoach = m_coach.GetSeenCoachObject("ball");
+                if (ballPosByCoach == null)
                 {
-                    // If you don't know where is ball then find it
-                    m_robot.Turn(80);
                     m_memory.waitForNewInfo();
+                    ballPosByCoach = m_coach.GetSeenCoachObject("ball");
                 }
-                else if (obj.Distance.Value > Consts.KICKABLE_AREA)
+                if (ballPosByCoach != null && ballPosByCoach.Pos != null)
                 {
-                    // If ball is too far then
-                    // turn to ball or 
-                    // if we have correct direction then go to ball
-                    if (obj.Direction.Value > Math.Abs(2))
-                        m_robot.Turn(obj.Direction.Value);
-                    else
-                        m_robot.Dash(10 * obj.Distance.Value);
+                    Console.WriteLine($"Ball Position {ballPosByCoach.Pos.Value.X}, {ballPosByCoach.Pos.Value.Y}");
                 }
-                else
+                bool IsBallOnOurSide = BallInSideOurHalf(ballPosByCoach.Pos);
+
+                if (!IsBallOnOurSide || (ballPosByCoach.Pos.Value.X == 0 && ballPosByCoach.Pos.Value.Y == 0))
                 {
-                    // We know where is ball and we can kick it
-                    // so look for goal
-                    if (m_side == 'l')
+                    var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+                    if (my_data == null)
                     {
-
-                        obj = m_memory.GetSeenObject("goal r");
-                        obj_flag = m_memory.GetSeenObject("flag p r c");
+                        m_memory.waitForNewInfo();
+                        my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
                     }
-                    else{
-                        obj = m_memory.GetSeenObject("goal l");
-                        obj_flag = m_memory.GetSeenObject("flag p l c");
+                    var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, ballPosByCoach.Pos.Value.X, ballPosByCoach.Pos.Value.Y);
 
-                    }
-
-                    if (obj == null)
+                    if (Math.Abs(angleToTurn) > 2)
                     {
-                        if(obj_flag != null)
-                        {
-                            m_robot.Kick(100, obj_flag.Direction.Value);
-                        }
-                        
-                        m_robot.Turn(80);
+                        m_robot.Turn(angleToTurn);
                         m_memory.waitForNewInfo();
                     }
-                    else
-                        m_robot.Kick(100, obj.Direction.Value);
+
+                    var distToBall = CommonTools.GetDistance(my_data.Pos, ballPosByCoach.Pos);
+                    // if the ball far, dash to it
+                    if (distToBall > Consts.KICKABLE_AREA)
+                    {
+                        m_robot.Dash(10 * distToBall);
+                    }
+                    else // if the ball is close - kick it
+                    {
+                        PointF opponentGoal = m_side == 'l' ? Consts.goal_r : Consts.goal_l;
+                        var angleToGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, opponentGoal.X, opponentGoal.Y);
+
+                        var distToGoal = CommonTools.GetDistance(my_data.Pos, opponentGoal);
+                        if (distToBall < 20)
+                        {
+                            Console.WriteLine("before rand {0}", angleToGoal);
+                            angleToGoal += rand.Next(-10, 10);
+                            Console.WriteLine("after rand {0}", angleToGoal);
+                        }
+                        m_robot.Kick(100, angleToGoal);
+                    }
                 }
+                else // ball on opponent side - go to defenders area
+                {
+                    string flag = GetAttFlag();
+
+                    PointF flag_pos = GetFlagPos(flag);
+
+                    var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+                    var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, flag_pos.X, flag_pos.Y);
+                    var dist = CommonTools.GetDistance(my_data.Pos, flag_pos);
+
+                    if (Math.Abs(angleToTurn) > 1)
+                    {
+                        m_robot.Turn(angleToTurn);
+                        m_memory.waitForNewInfo();
+                    }
+                    m_robot.Dash(10 * dist);
+                }
+
 
                 // sleep one step to ensure that we will not send
                 // two commands in one cycle.
                 try
                 {
-                    Thread.Sleep(2 * SoccerParams.simulator_step);
+                    Thread.Sleep(SoccerParams.simulator_step);
                 }
-                catch (Exception e) 
+                catch (Exception e)
                 {
 
                 }
             }
         }
+
+        private PointF GetFlagPos(string flag)
+        {
+            switch (flag)
+            {
+                case "flag c l t":
+                    return Consts.clt;
+                case "flag c l b":
+                    return Consts.clb;
+                case "flag c r t":
+                    return Consts.crt;
+                case "flag c r b":
+                    return Consts.crb;
+
+                default:
+                    throw new Exception("invalid flag");
+            }
+        }
+
+        private string GetAttFlag()
+        {
+            string flag;
+            if (m_side == 'l')
+            {
+                if (m_PlayerSide == PlayerSide.LEFT)
+                    flag = "flag c r t";
+                else
+                    flag = "flag c r b";
+            }
+            else
+            {
+                if (m_PlayerSide == PlayerSide.LEFT)
+                    flag = "flag c l b";
+                else
+                    flag = "flag c l t";
+            }
+            return flag;
+        }
+
 
         private SenseBodyInfo GetBodyInfo()
         {
@@ -100,11 +152,12 @@ namespace RoboCup
             SenseBodyInfo bodyInfo = null;
             while (bodyInfo == null)
             {
-                Thread.Sleep(WAIT_FOR_MSG_TIME);
+                Thread.Sleep(Consts.WAIT_FOR_MSG_TIME);
                 bodyInfo = m_memory.getBodyInfo();
             }
 
             return bodyInfo;
         }
+
     }
 }

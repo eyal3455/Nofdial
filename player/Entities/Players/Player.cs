@@ -15,6 +15,10 @@ namespace RoboCup
         protected PointF m_startPosition;
         volatile protected bool m_timeOver;
         protected Thread m_strategy;
+
+        public enum PlayerSide { LEFT, RIGHT };
+        protected PlayerSide m_PlayerSide;
+
         protected int m_sideFactor
         {
             get
@@ -47,6 +51,20 @@ namespace RoboCup
         public virtual  void play()
         {
  
+        }
+
+        protected bool BallInSideOurHalf(PointF? pos)
+        {
+            if (pos == null)
+                return false;
+
+            if (m_side == 'l' && pos.Value.X <= 0)
+                return true;
+
+            if (m_side == 'r' && pos.Value.X >= 0)
+                return true;
+
+            return false;
         }
 
         public void see(VisualInfo info)

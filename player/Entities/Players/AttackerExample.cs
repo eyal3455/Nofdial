@@ -19,7 +19,6 @@ namespace RoboCup
         {
             // first ,ove to start position
             //m_robot.Move(m_startPosition.X, m_startPosition.Y);
-            var rand = new Random();
             while (!m_timeOver)
             {
                 //Get current player's info:
@@ -66,11 +65,12 @@ namespace RoboCup
                         var angleToGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, opponentGoal.X, opponentGoal.Y);
 
                         var distToGoal = CommonTools.GetDistance(my_data.Pos, opponentGoal);
-                        if (distToBall < 20)
+                        if (distToGoal < 20)
                         {
-                            Console.WriteLine("before rand {0}", angleToGoal);
-                            angleToGoal += rand.Next(-10, 10);
-                            Console.WriteLine("after rand {0}", angleToGoal);
+                            Console.WriteLine("before update angle {0}", angleToGoal);
+                            var fix = (my_data.Pos.Value.Y > 0) ? 5 : -5;
+                            angleToGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, opponentGoal.X, opponentGoal.Y + fix);
+                            Console.WriteLine("after update angle {0}", angleToGoal);
                         }
                         m_robot.Kick(100, angleToGoal);
                     }

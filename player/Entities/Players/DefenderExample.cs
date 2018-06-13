@@ -41,7 +41,7 @@ namespace RoboCup
                 if (IsBallOnOurSide)
                 {
                     var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
-                    if(my_data == null)
+                    while(my_data == null)
                     {
                         m_memory.waitForNewInfo();
                         my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);

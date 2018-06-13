@@ -12,8 +12,7 @@ namespace RoboCup
 {
     public class DefenderExample : Player
     {
-        private const int WAIT_FOR_MSG_TIME = 10;
-
+        
         public DefenderExample(Team team, ICoach coach)
             : base(team, coach)
         {
@@ -23,20 +22,21 @@ namespace RoboCup
         public override void play()
         {
             // first ,ove to start position
-            m_robot.Move(m_startPosition.X, m_startPosition.Y);
+            //m_robot.Move(m_startPosition.X, m_startPosition.Y);
 
             while (!m_timeOver)
             {
                 SeenObject ball = null;
                 SeenObject goal = null;
+                SeenObject goalArea = null;
+                SeenObject fieldCenter = null;
 
                 //Get current player's info:
-                var bodyInfo = GetBodyInfo();
-                Console.WriteLine($"Kicks so far : {bodyInfo.Kick}");
+                //var bodyInfo = GetBodyInfo();
+                //Console.WriteLine($"Kicks so far : {bodyInfo.Kick}");
 
-                while (ball == null || ball.Distance > 1.5)
+                while (ball == null || ball.Distance > Consts.KICKABLE_AREA)
                 {
-                    //Get field information from god (coach).
                     var ballPosByCoach = m_coach.GetSeenCoachObject("ball");
                     if (ballPosByCoach != null && ballPosByCoach.Pos != null)
                     {
@@ -48,25 +48,87 @@ namespace RoboCup
                     if (ball == null)
                     {
                         // If you don't know where is ball then find it
-                        m_robot.Turn(40);
+                        m_robot.Turn(90);
                         m_memory.waitForNewInfo();
                     }
-                    else if (ball.Distance > 1.5)
+                    else if (ball.Distance.Value > Consts.KICKABLE_AREA )
                     {
                         // If ball is too far then
                         // turn to ball or 
                         // if we have correct direction then go to ball
-                        if (Math.Abs((double)ball.Direction) < 0)
+                        if (Math.Abs((double)ball.Direction) > 2)
                             m_robot.Turn(ball.Direction.Value);
                         else
-                            m_robot.Dash(10 * ball.Distance.Value);
+                        {
+                            // if ball on our side , go to him, otherwise go to penalty area
+                            if(BallInSideOurHalf(ballPosByCoach.Pos))
+                                m_robot.Dash(10 * ball.Distance.Value);
+                            else
+                            {
+                                // ball on opponent side - go to penalty area
+                                string flag;
+                                if (m_side == 'l')
+                                    flag = "flag p l c";
+                                else
+                                    flag = "flag p r c";
+
+                                int cnt1 = 0;
+                                goalArea = null;
+                                while(goalArea == null && cnt1 < 4)
+                                {
+                                    goalArea = m_memory.GetSeenObject(flag);
+                                    if (goalArea == null)
+                                    {
+                                        cnt1++;
+                                        m_robot.Turn(90);
+                                        m_memory.waitForNewInfo();
+                                    }
+                                }
+
+                                if (goalArea != null)
+                                {
+                                    m_robot.Turn(goalArea.Direction.Value);
+                                    m_memory.waitForNewInfo();
+
+                                    m_robot.Dash(100);
+                                }
+
+
+                            }
+                            //m_robot.Say("Running...");
+                        }
                     }
+                    //else if (ball.Distance.Value >= 30)
+                    //{
+                    //    // go to mid own rehave
+                    //    string flag;
+                    //    if (m_side == 'l')
+                    //        flag = "flag p r c";
+                    //    else
+                    //        flag = "flag p l c";
+
+                    //    goalArea = m_memory.GetSeenObject(flag);
+
+                    //    if (goalArea == null)
+                    //    {
+                    //        m_coach.GetSeenCoachObject(flag);
+                    //        //Get field information from god (coach).
+                    //        var flagPos = m_coach.GetSeenCoachObject(flag);
+                    //        if (flagPos != null && flagPos.Pos != null)
+                    //        {
+                    //            m_robot.Dash(flagPos.Direction.Value);
+                    //        }
+                    //    }
+                    //    else
+                    //        m_robot.Dash(goalArea.Direction.Value);
+                    //}
                 }
 
                 // We know where is ball and we can kick it
                 // so look for goal
-
-                while (goal == null)
+                goal = null;
+                int cnt = 0;
+                while (goal==null && cnt < 4)
                 {
                     m_memory.waitForNewInfo();
                     if (m_side == 'l')
@@ -76,11 +138,34 @@ namespace RoboCup
 
                     if (goal == null)
                     {
-                        m_robot.Turn(40);
+                        cnt++;
+                        m_robot.Turn(90);
+                        
                     }
                 }
 
-                m_robot.Kick(100, goal.Direction.Value);
+                if(goal == null) // if did not find goal -look for mid field
+                {
+                    cnt = 0;
+                    while (fieldCenter == null && cnt < 4)
+                    {
+                        fieldCenter = m_memory.GetSeenObject("flag c");
+
+                        if (fieldCenter == null)
+                        {
+                            cnt++;
+                            m_robot.Turn(90);
+                            
+                        }
+                    }
+                }
+
+                if (goal != null)
+                    m_robot.Kick(100, goal.Direction.Value);
+                else
+                    if (fieldCenter != null)
+                    m_robot.Kick(100, fieldCenter.Direction.Value);
+
             }
 
             // sleep one step to ensure that we will not send
@@ -95,13 +180,28 @@ namespace RoboCup
             }
         }
 
+        private bool BallInSideOurHalf(PointF? pos)
+        {
+            if (pos == null)
+                return false;
+
+            if (m_side == 'l' && pos.Value.X <= 0)
+                return true;
+
+            if (m_side == 'r' && pos.Value.X >= 0)
+                return true;
+
+            return false;
+        }
+
+        
         private SenseBodyInfo GetBodyInfo()
         {
             m_robot.SenseBody();
             SenseBodyInfo bodyInfo = null;
             while (bodyInfo == null)
             {
-                Thread.Sleep(WAIT_FOR_MSG_TIME);
+                Thread.Sleep(Consts.WAIT_FOR_MSG_TIME);
                 bodyInfo = m_memory.getBodyInfo();
             }
 

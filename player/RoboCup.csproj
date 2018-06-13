@@ -66,10 +66,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities\Coach.cs" />
+    <Compile Include="Entities\Consts.cs" />
     <Compile Include="Entities\Enums.cs" />
     <Compile Include="Entities\Formations\Formation_4_4_2.cs" />
     <Compile Include="Entities\Formations\IFormation.cs" />
     <Compile Include="Entities\ICoach.cs" />
+    <Compile Include="Entities\Players\BenchMarkPlayer.cs" />
     <Compile Include="Entities\Players\Defenders\CentralDefender.cs" />
     <Compile Include="Entities\Players\Defenders\CentralDefenderLeft.cs" />
     <Compile Include="Entities\Players\Defenders\CentralDefenderRight.cs" />

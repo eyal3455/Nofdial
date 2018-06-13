@@ -14,7 +14,8 @@ namespace RoboCup
        static  void Main(string[] args)
         {
             var team1 = new Team(new string[]{ "Strategy=Attack", "TeamName=Attackers" });
-            var team2 = new Team(new string[]{ "Strategy=Defend", "TeamName=Defenders" });
+            //var team2 = new Team(new string[]{ "Strategy=Defend", "TeamName=Defenders" });
+            var team2 = new Team(new string[] { "TeamName=DummyOpponent" });
             //foreach (var arg in args)
             //{
             //    if (String.Compare(arg, "AddOpponent", StringComparison.InvariantCultureIgnoreCase) == 0)
@@ -23,7 +24,7 @@ namespace RoboCup
             //        break;
             //    }
             //}
-            
+
             Console.ReadKey();
         }
 

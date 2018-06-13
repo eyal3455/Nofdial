@@ -1,4 +1,5 @@
-﻿using RoboCup.Entities;
+﻿using player.Entities.Players;
+using RoboCup.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,11 @@ namespace RoboCup
         public List<Player> InitAttackers(Team team, ICoach coach)
         {
             var players = new List<Player>();
-            players.Add(new AttackerExample(team, coach));
-            players.Add(new AttackerExample(team, coach));
-            players.Add(new AttackerExample(team, coach));
-            players.Add(new AttackerExample(team, coach));
+            //players.Add(new DefenderExample(team, coach));
+            players.Add(new DefenderExample(team, coach));
+            //players.Add(new AttackerExample(team, coach));
+            //players.Add(new AttackerExample(team, coach));
+            players.Add(new Goalkeeper(team, coach));
 
             return players;
         }
@@ -27,10 +29,11 @@ namespace RoboCup
         public List<Player> InitDefenders(Team team, ICoach coach)
         {
             var players = new List<Player>();
-            players.Add(new DefenderExample(team, coach));
-            players.Add(new DefenderExample(team, coach));
-            players.Add(new DefenderExample(team, coach));
-            players.Add(new DefenderExample(team, coach));
+            players.Add(new BenchMarkPlayer(team, coach));
+            players.Add(new BenchMarkPlayer(team, coach));
+            players.Add(new BenchMarkPlayer(team, coach));
+            players.Add(new BenchMarkPlayer(team, coach));
+            players.Add(new Goalkeeper(team, coach));
 
             return players;
         }
@@ -46,8 +49,8 @@ namespace RoboCup
             }
 
             var players = new List<Player>();
-            players.Add(new DefenderExample(team, coach));
-            players.Add(new AttackerExample(team, coach));
+            players.Add(new BenchMarkPlayer(team, coach));
+            //players.Add(new AttackerExample(team, coach));
 
             return players;
         }

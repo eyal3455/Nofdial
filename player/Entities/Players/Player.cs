@@ -7,7 +7,7 @@ using RoboCup.Entities;
 namespace RoboCup
 {
 
-    public class Player : IPlayer
+    public class Player : IPlayer, ISensorInput
     {
         // Protected members
         protected Robot m_robot;			    // robot which is controled by this brain
@@ -47,6 +47,22 @@ namespace RoboCup
         public virtual  void play()
         {
  
+        }
+
+        public void see(VisualInfo info)
+        {
+            throw new NotImplementedException();
+        }
+        // This function receives hear information from player
+        public void hear(int time, int direction, string message)
+        {
+            Console.WriteLine("team %d number %d time %d direction: %d message: %s ", m_team.m_teamName, m_number, time, direction, message);
+            
+        }
+
+        public void hear(int time, string message)
+        {
+            throw new NotImplementedException();
         }
     }
 }

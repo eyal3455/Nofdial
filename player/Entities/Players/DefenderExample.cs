@@ -43,6 +43,11 @@ namespace RoboCup
                 if (IsBallOnOurSide)
                 {
                     var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+                    if(my_data == null)
+                    {
+                        m_memory.waitForNewInfo();
+                        my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+                    }
                     var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, ballPosByCoach.Pos.Value.X, ballPosByCoach.Pos.Value.Y);
 
                     if (Math.Abs(angleToTurn) > 2)
@@ -62,85 +67,11 @@ namespace RoboCup
                         PointF opponentGoal = m_side == 'l' ? Consts.goal_r : Consts.goal_l;
                         var angleToGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, opponentGoal.X, opponentGoal.Y);
 
-                        m_robot.Turn(angleToGoal);
-                        m_memory.waitForNewInfo();
+                        //m_robot.Turn(angleToGoal);
+                        //m_memory.waitForNewInfo();
                         m_robot.Kick(100, angleToGoal);
                     }
                 }
-
-
-
-                //    //look for the ball
-                //    while (ball == null || ball.Distance > Consts.KICKABLE_AREA)
-                //    {
-                //        //m_memory.waitForNewInfo();
-                //        ball = m_memory.GetSeenObject("ball");
-                //        if (ball == null)
-                //        {
-                //            // If you don't know where is ball then find it
-                //            m_robot.Turn(90);
-                //            m_memory.waitForNewInfo();
-                //        }
-                //        else if (ball.Distance.Value > Consts.KICKABLE_AREA)
-                //        {
-                //            // If ball is too far then
-                //            // turn to ball or 
-                //            // if we have correct direction then go to ball
-                //            if (Math.Abs((double)ball.Direction) > 2)
-                //                m_robot.Turn(ball.Direction.Value);
-                //            else
-                //            {
-                //                // if ball on our side , go to him, otherwise go to penalty area
-                //                if (IsBallOnOurSide)
-                //                    m_robot.Dash(10 * ball.Distance.Value);
-                //                //m_robot.Say("Running...");
-                //            }
-                //        }
-                //    }
-
-                //    // We know where is ball and we can kick it
-                //    // so look for goal
-                //    goal = null;
-                //    int cnt = 0;
-                //    while (goal == null && cnt < 4)
-                //    {
-                //        m_memory.waitForNewInfo();
-                //        if (m_side == 'l')
-                //            goal = m_memory.GetSeenObject("goal r");
-                //        else
-                //            goal = m_memory.GetSeenObject("goal l");
-
-                //        if (goal == null)
-                //        {
-                //            cnt++;
-                //            m_robot.Turn(90);
-                //        }
-                //    }
-
-                //    // if did not find goal -look for mid field
-                //    if (goal == null) 
-                //    {
-                //        cnt = 0;
-                //        while (fieldCenter == null && cnt < 4)
-                //        {
-                //            fieldCenter = m_memory.GetSeenObject("flag c");
-
-                //            if (fieldCenter == null)
-                //            {
-                //                cnt++;
-                //                m_robot.Turn(90);
-
-                //            }
-                //        }
-                //    }
-
-                //    if (goal != null)
-                //        m_robot.Kick(100, goal.Direction.Value);
-                //    else
-                //        if (fieldCenter != null)
-                //        m_robot.Kick(100, fieldCenter.Direction.Value);
-
-                //}
                 else // ball on opponent side - go to defenders area
                 {
                     string flag = GetDefFlag();
@@ -153,7 +84,6 @@ namespace RoboCup
                     m_robot.Turn(angleToTurn);
                     m_memory.waitForNewInfo();
                     m_robot.Dash(100);
-
                 }
 
 

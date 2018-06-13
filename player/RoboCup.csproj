@@ -97,6 +97,7 @@
     <Compile Include="Entities\Players\DefenderExample.cs" />
     <Compile Include="Entities\Players\AttackerExample.cs" />
     <Compile Include="Entities\Team.cs" />
+    <Compile Include="Infrastructure\CommonTools.cs" />
     <Compile Include="Infrastructure\FieldLocations.cs" />
     <Compile Include="Infrastructure\FlagNameToPointF.cs" />
     <Compile Include="Infrastructure\SeenCoachObject.cs" />

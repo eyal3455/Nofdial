@@ -18,6 +18,7 @@ namespace player.Entities.Players
     public class Goalkeeper : Player
     {
         private const int WAIT_FOR_MSG_TIME = 10;
+        private int currentGoalCounter = 0;
 
         public Goalkeeper(Team team, ICoach coach)
             : base(team, coach)
@@ -32,7 +33,7 @@ namespace player.Entities.Players
             bool isInGoal = false;
             while (!m_timeOver)
             {
-                if (!isInGoal)
+                if (!isInGoal || IsKickoff())
                 {
                     MoveToMyGoal();
                     isInGoal = true;
@@ -127,6 +128,16 @@ namespace player.Entities.Players
             {
 
             }
+        }
+
+        private bool IsKickoff()
+        {
+            if (m_robot.goalCounter_l + m_robot.goalCounter_r > currentGoalCounter)
+            {
+                currentGoalCounter = m_robot.goalCounter_l + m_robot.goalCounter_r;
+                return true;
+            }
+            return false;
         }
 
         private SenseBodyInfo GetBodyInfo()

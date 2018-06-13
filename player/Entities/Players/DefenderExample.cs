@@ -57,41 +57,52 @@ namespace RoboCup
                         // turn to ball or 
                         // if we have correct direction then go to ball
                         if (Math.Abs((double)ball.Direction) > 2)
+                        {
                             m_robot.Turn(ball.Direction.Value);
+
+                        }
                         else
                         {
                             // if ball on our side , go to him, otherwise go to penalty area
-                            if(BallInSideOurHalf(ballPosByCoach.Pos))
+                            if(ballPosByCoach!=null && BallInSideOurHalf(ballPosByCoach.Pos))
                                 m_robot.Dash(10 * ball.Distance.Value);
                             else
                             {
+                                var my_data = m_coach.GetSeenCoachObject("player "+m_team.m_teamName+" "+m_number);
+                                var angleToTurn = GetRelativeAngle(my_data.BodyAngle, my_data.Pos,0,0);
+
+                                m_robot.Turn(angleToTurn);
+                                m_memory.waitForNewInfo();
+                                m_robot.Dash(100);
+
+
                                 // ball on opponent side - go to penalty area
-                                string flag;
-                                if (m_side == 'l')
-                                    flag = "flag p l c";
-                                else
-                                    flag = "flag p r c";
+                                //string flag;
+                                //if (m_side == 'l')
+                                //    flag = "flag p l c";
+                                //else
+                                //    flag = "flag p r c";
 
-                                int cnt1 = 0;
-                                goalArea = null;
-                                while(goalArea == null && cnt1 < 4)
-                                {
-                                    goalArea = m_memory.GetSeenObject(flag);
-                                    if (goalArea == null)
-                                    {
-                                        cnt1++;
-                                        m_robot.Turn(90);
-                                        m_memory.waitForNewInfo();
-                                    }
-                                }
+                                //int cnt1 = 0;
+                                //goalArea = null;
+                                //while(goalArea == null && cnt1 < 4)
+                                //{
+                                //    goalArea = m_memory.GetSeenObject(flag);
+                                //    if (goalArea == null)
+                                //    {
+                                //        cnt1++;
+                                //        m_robot.Turn(90);
+                                //        m_memory.waitForNewInfo();
+                                //    }
+                                //}
 
-                                if (goalArea != null)
-                                {
-                                    m_robot.Turn(goalArea.Direction.Value);
-                                    m_memory.waitForNewInfo();
+                                //if (goalArea != null)
+                                //{
+                                //    m_robot.Turn(goalArea.Direction.Value);
+                                //    m_memory.waitForNewInfo();
 
-                                    m_robot.Dash(100);
-                                }
+                                //    m_robot.Dash(100);
+                                //}
 
 
                             }
@@ -178,6 +189,24 @@ namespace RoboCup
             {
 
             }
+        }
+
+        private double GetRelativeAngle(float? bodyAngle, PointF? my_pos , int trg__pos_x, int trg__pos_y)
+        {
+
+            double direction = Math.Atan2(trg__pos_y - my_pos.Value.Y, trg__pos_x - my_pos.Value.X) / Math.PI * 360;
+            double angleToTurn = direction - bodyAngle.Value;
+
+            if (angleToTurn > 180)
+            {
+                return angleToTurn - 360;
+            }
+            else if (angleToTurn < -180)
+            {
+                return angleToTurn + 360;
+
+            }
+            return angleToTurn;
         }
 
         private bool BallInSideOurHalf(PointF? pos)

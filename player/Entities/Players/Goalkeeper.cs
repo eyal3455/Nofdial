@@ -23,7 +23,7 @@ namespace player.Entities.Players
         public Goalkeeper(Team team, ICoach coach)
             : base(team, coach)
         {
-            m_startPosition = new PointF(m_sideFactor * 100, 0);
+            m_startPosition = new PointF(m_sideFactor * 52, 0);
         }
 
         public override void play()
@@ -34,6 +34,11 @@ namespace player.Entities.Players
             while (!m_timeOver)
             {
                 if (!isInGoal || IsKickoff())
+                {
+                    MoveToMyGoal();
+                    isInGoal = true;
+                }
+                if (IsTooFarFromGoal())
                 {
                     MoveToMyGoal();
                     isInGoal = true;
@@ -128,6 +133,24 @@ namespace player.Entities.Players
             {
 
             }
+        }
+
+        // Read distances form flags and see if too far from goal.
+        private bool IsTooFarFromGoal()
+        {
+            int threshHold = 15;
+            var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+            if (my_data != null)
+            {
+                double dist = GetDistance(my_data.Pos.Value, m_startPosition);
+                return dist > threshHold;
+            }
+            return false;
+        }
+
+        private double GetDistance(PointF pos, PointF m_startPosition)
+        {
+            return Math.Sqrt(Math.Pow(pos.X - m_startPosition.X,2) + Math.Pow(pos.Y - m_startPosition.Y,2));
         }
 
         private bool IsKickoff()

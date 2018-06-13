@@ -27,5 +27,13 @@ namespace RoboCup.Infrastructure
             }
             return angleToTurn;
         }
+
+        public static double GetDistance(PointF? obj1, PointF? obj2)
+        {
+
+            double result1 =  Math.Pow(obj1.Value.Y - obj2.Value.Y, 2);
+            double result2 = Math.Pow(obj1.Value.X - obj2.Value.X, 2);
+            return Math.Sqrt(result1 + result2);
+        }
     }
 }

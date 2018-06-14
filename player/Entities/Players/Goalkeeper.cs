@@ -147,7 +147,7 @@ namespace player.Entities.Players
 
         private PointF GetRelativePosition(PointF myGoal)
         {
-            float distFromCenter = 5;
+            float distFromCenter = 7;
             var ball = m_coach.GetSeenCoachObject("ball");
             if (ball == null)
             {

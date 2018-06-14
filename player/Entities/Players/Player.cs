@@ -34,13 +34,16 @@ namespace RoboCup
         public Team m_team;
         public ICoach m_coach;
 
-        public Player(Team team, ICoach coach)
+        public Player(Team team, ICoach coach, bool isGoalie = false)
         {
             m_coach = coach;
             m_memory = new Memory();
             m_team = team;
             m_robot = new Robot(m_memory);
-            m_robot.Init(team.m_teamName, out m_side, out m_number, out m_playMode);
+
+            string m_teamName = isGoalie ? team.m_teamName + " (version 6) (goalie)" : team.m_teamName;
+
+            m_robot.Init(m_teamName, out m_side, out m_number, out m_playMode);
 
             Console.WriteLine("New Player - Team: " + m_team.m_teamName + " Side:" + m_side +" Num:" + m_number);
 

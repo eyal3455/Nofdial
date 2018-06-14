@@ -21,7 +21,7 @@ namespace player.Entities.Players
         private int currentGoalCounter = 0;
 
         public Goalkeeper(Team team, ICoach coach)
-            : base(team, coach)
+            : base(team, coach, true)
         {
             m_startPosition = new PointF(m_sideFactor * 100, 0);
         }

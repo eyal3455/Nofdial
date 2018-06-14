@@ -23,7 +23,7 @@ namespace player.Entities.Players
         public Goalkeeper(Team team, ICoach coach)
             : base(team, coach, true)
         {
-            m_startPosition = new PointF(m_sideFactor * 100, 0);
+            m_startPosition = new PointF(m_sideFactor * 48, 0);
         }
 
         public override void play()
@@ -53,7 +53,25 @@ namespace player.Entities.Players
                 {
                     if (distanceToBall < Consts.KICKABLE_AREA)
                     {
-                        m_robot.Kick(100, 30);
+                        // catch
+                        var directionToBall = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos,
+                            ball.Pos.Value.X, ball.Pos.Value.Y);
+                        m_robot.Catch(directionToBall);
+                        m_memory.waitForNewInfo();
+                        
+                        // move
+                        m_robot.Move(m_startPosition.X, m_startPosition.Y);
+                        m_memory.waitForNewInfo();
+
+                        // turn
+                        PointF opponentsGoal = GetOpponentsGoal();
+                        var directionToOpponentsGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos,
+                            opponentsGoal.X, opponentsGoal.Y);
+                        /*m_robot.Turn(directionToBall);
+                        Thread.Sleep(100);
+                        m_memory.waitForNewInfo();*/
+
+                        m_robot.Kick(100, directionToOpponentsGoal);
                     }
                     else
                     {
@@ -74,6 +92,11 @@ namespace player.Entities.Players
                 }
             }
 
+        }
+
+        private PointF GetOpponentsGoal()
+        {
+            return m_side == 'l' ? Consts.goal_r : Consts.goal_l;
         }
 
         private bool IsKickoff()

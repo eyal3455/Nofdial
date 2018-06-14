@@ -61,7 +61,7 @@ namespace RoboCup
                     // if the ball far, dash to it
                     if (distToBall > Consts.KICKABLE_AREA)
                     {
-                        m_robot.Dash(10 * Math.Pow(distToBall, 2));
+                        m_robot.Dash(10 * Math.Pow(distToBall, 4));
                     }
                     else // if the ball is close - kick it
                     {

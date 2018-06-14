@@ -58,39 +58,66 @@ namespace RoboCup
                     // if the ball far, dash to it
                     if (distToBall > Consts.KICKABLE_AREA)
                     {
-                        var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, ballPosByCoach.Pos.Value.X, ballPosByCoach.Pos.Value.Y);
-                        if (Math.Abs(angleToTurn) > 3)
+                        bool isAtt4 = my_data.Name.Equals("player Belgium 4");
+                        if (isAtt4 == true)
                         {
-                            m_robot.Turn(angleToTurn);
-                            m_memory.waitForNewInfo();
+                            var partner_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + "3");
+                            var partnerDistToBall = CommonTools.GetDistance(partner_data.Pos, ballPosByCoach.Pos);
+                            var penaltyCenter = (m_side == 'l') ? Consts.prc : Consts.plc;
+                            if (partnerDistToBall < distToBall) // My partner will run, i should go to the penalty area
+                            {
+                                var angleToPenaltyArea = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, penaltyCenter.X, penaltyCenter.Y);
+                                if (Math.Abs(angleToPenaltyArea) > 3)
+                                {
+                                    m_robot.Turn(angleToPenaltyArea);
+                                    m_memory.waitForNewInfo();
+                                }
+                                var dist = CommonTools.GetDistance(my_data.Pos, penaltyCenter);
+
+                                m_robot.Dash(10 * dist);
+
+                            }
+                            else // I'm dashing to the ball
+                            {
+                                var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, ballPosByCoach.Pos.Value.X, ballPosByCoach.Pos.Value.Y);
+                                if (Math.Abs(angleToTurn) > 3)
+                                {
+                                    m_robot.Turn(angleToTurn);
+                                    m_memory.waitForNewInfo();
+                                }
+                                m_robot.Dash(10 * distToBall);
+                            }
+
                         }
-                        /////////// Colision avoidance    //////////
+                        else // I'm player 3
+                        {
+                            var partner_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + "4");
+                            var partnerDistToBall = CommonTools.GetDistance(partner_data.Pos, ballPosByCoach.Pos);
+                            var penaltyCenter = (m_side == 'l') ? Consts.prc : Consts.plc;
+                            if (partnerDistToBall < distToBall) // My partner will run, i should go to the penalty area
+                            {
+                                var angleToPenaltyArea = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, penaltyCenter.X, penaltyCenter.Y);
+                                if (Math.Abs(angleToPenaltyArea) > 3)
+                                {
+                                    m_robot.Turn(angleToPenaltyArea);
+                                    m_memory.waitForNewInfo();
+                                }
+                                var dist = CommonTools.GetDistance(my_data.Pos, penaltyCenter);
 
-                        //m_PosOfLastDash = my_data.Pos.Value;
-                        Double dashSpeed = 10 * Math.Pow(distToBall, 2);
-                        // Asaf todo 
-                        //bool isAtt4 = my_data.Name.Equals("player Belgium 4");
-                        //if (isAtt4== true)
-                        //{
-                        //    m_robot.Dash(dashSpeed);
-                        //}
-                        m_robot.Dash(dashSpeed);
+                                m_robot.Dash(10 * dist);
 
-                        //m_robot.Dash(dashSpeed);
-                        //m_memory.waitForNewInfo();
-                        //my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
-                        //double currSpeed = Math.Sqrt(Math.Pow(my_data.VelX, 2) + Math.Pow(my_data.VelY, 2));
-                        //if (currSpeed < 0.3 * dashSpeed)
-                        //if (my_data.VelX+ my_data.VelY < 0.0001 && my_data.VelX + my_data.VelY < dashSpeed)
-                        //{
-                        //    m_robot.Turn(90);
-                        //    m_memory.waitForNewInfo();
-                        //    m_robot.Dash(100);
-                        //}
-
-
-                        ////////////////////
-                        //m_robot.Dash(10 * Math.Pow(distToBall,4));
+                            }
+                            else // I'm dashing to the ball
+                            {
+                                var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, ballPosByCoach.Pos.Value.X, ballPosByCoach.Pos.Value.Y);
+                                if (Math.Abs(angleToTurn) > 3)
+                                {
+                                    m_robot.Turn(angleToTurn);
+                                    m_memory.waitForNewInfo();
+                                }
+                                m_robot.Dash(10 * distToBall);
+                            }
+                        }
                     }
                     else // if the ball is close - kick it
                     {
@@ -101,7 +128,7 @@ namespace RoboCup
                         if (distToGoal < 25)
                         {
                             Console.WriteLine("before update angle {0}", angleToGoal);
-                            var fix = (my_data.Pos.Value.Y > 0) ? 6 : -6;
+                            var fix = (my_data.Pos.Value.Y > 0) ? 5 : -5;
                             angleToGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, opponentGoal.X, opponentGoal.Y + fix);
                             Console.WriteLine("after update angle {0}", angleToGoal);
                         }
@@ -109,6 +136,7 @@ namespace RoboCup
                         if (CommonTools.GetDistance(my_data.Pos, m_PosOfLastKick) > 1)
                         {
                             m_PosOfLastKick = my_data.Pos.Value;
+                            distToGoal = CommonTools.GetDistance(my_data.Pos, opponentGoal);
                             m_robot.Kick(100, angleToGoal);
                         }
                         else // I can't kick to the opponentGoal then move it sideways
@@ -126,7 +154,7 @@ namespace RoboCup
 
                         }
                         //////////////////////
-                       
+
                     }
                 }
                 else // ball on opponent side - go to defenders area
@@ -139,7 +167,7 @@ namespace RoboCup
                     var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, flag_pos.X, flag_pos.Y);
                     var dist = CommonTools.GetDistance(my_data.Pos, flag_pos);
 
-                    if (Math.Abs(angleToTurn) > 1)
+                    if (Math.Abs(angleToTurn) > 3)
                     {
                         m_robot.Turn(angleToTurn);
                         m_memory.waitForNewInfo();

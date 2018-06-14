@@ -49,26 +49,26 @@ namespace RoboCup
                         m_memory.waitForNewInfo();
                         my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
                     }
-                    var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, ballPosByCoach.Pos.Value.X, ballPosByCoach.Pos.Value.Y);
+                   
+                    var distToBall = CommonTools.GetDistance(my_data.Pos, ballPosByCoach.Pos);
+                    // if the ball far, dash to it
+                    if (distToBall > Consts.KICKABLE_AREA)
+                    { 
+                        var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, ballPosByCoach.Pos.Value.X, ballPosByCoach.Pos.Value.Y);
 
-                    if (Math.Abs(angleToTurn) > 2)
+                    if (Math.Abs(angleToTurn) > 3)
                     {
                         m_robot.Turn(angleToTurn);
                         m_memory.waitForNewInfo();
                     }
-
-                    var distToBall = CommonTools.GetDistance(my_data.Pos, ballPosByCoach.Pos);
-                    // if the ball far, dash to it
-                    if (distToBall > Consts.KICKABLE_AREA)
-                    {
-                        m_robot.Dash(10 * Math.Pow(distToBall, 4));
+                    
+                        m_robot.Dash(Math.Min(10 * Math.Pow(distToBall, 4),100));
                     }
                     else // if the ball is close - kick it
                     {
                         PointF opponentGoal = m_side == 'l' ? Consts.goal_r : Consts.goal_l;
                         PointF myGoal = m_side == 'l' ? Consts.goal_l : Consts.goal_r;
                         var angleToGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, opponentGoal.X, opponentGoal.Y);
-                        var angleToMyGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, myGoal.X, myGoal.Y);
                         if (CommonTools.GetDistance(my_data.Pos, m_PosOfLastKick) > 1)
                         {
                             m_PosOfLastKick = my_data.Pos.Value;
@@ -76,6 +76,7 @@ namespace RoboCup
                         }
                         else
                         {
+                            var angleToMyGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, myGoal.X, myGoal.Y);
                             if (angleToMyGoal > 0)
                             {
                                 m_robot.Kick(100, -90);
@@ -98,7 +99,7 @@ namespace RoboCup
                     var angleToTurn = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, flag_pos.X, flag_pos.Y);
                     var dist = CommonTools.GetDistance(my_data.Pos, flag_pos);
 
-                    if (Math.Abs(angleToTurn) > 1)
+                    if (Math.Abs(angleToTurn) > 3)
                     {
                         m_robot.Turn(angleToTurn);
                         m_memory.waitForNewInfo();

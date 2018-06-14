@@ -51,7 +51,7 @@ namespace player.Entities.Players
                 var distanceToBall = CommonTools.GetDistance(my_data.Pos, ball.Pos);
                 if (distanceGoalBall < 17)
                 {
-                    if (distanceToBall < Consts.KICKABLE_AREA)
+                    if (distanceToBall < 1.5)
                     {
                         // catch
                         var directionToBall = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos,

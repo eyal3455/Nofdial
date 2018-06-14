@@ -67,9 +67,12 @@ namespace player.Entities.Players
                         PointF opponentsGoal = GetOpponentsGoal();
                         var directionToOpponentsGoal = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos,
                             opponentsGoal.X, opponentsGoal.Y);
-                        /*m_robot.Turn(directionToBall);
-                        Thread.Sleep(100);
-                        m_memory.waitForNewInfo();*/
+                        
+                        if (directionToOpponentsGoal > 90 || directionToOpponentsGoal < -90)
+                        {
+                            directionToOpponentsGoal /= directionToOpponentsGoal;
+                            directionToOpponentsGoal *= 90;
+                        }
 
                         m_robot.Kick(100, directionToOpponentsGoal);
                     }
@@ -147,7 +150,7 @@ namespace player.Entities.Players
 
         private PointF GetRelativePosition(PointF myGoal)
         {
-            float distFromCenter = 7;
+            float distFromCenter = 11;
             var ball = m_coach.GetSeenCoachObject("ball");
             if (ball == null)
             {

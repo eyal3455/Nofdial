@@ -29,104 +29,51 @@ namespace player.Entities.Players
         public override void play()
         {
             m_robot.Move(m_startPosition.X, m_startPosition.Y);
-
             bool isInGoal = false;
             while (!m_timeOver)
             {
-                if (!isInGoal || IsKickoff())
+                m_memory.waitForNewInfo();
+                SeenCoachObject ball = FindObjectInView("ball");
+                while (ball == null)
+                {
+                    m_memory.waitForNewInfo();
+                    ball = FindObjectInView("ball");
+                }
+                var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+                while (my_data == null)
+                {
+                    m_memory.waitForNewInfo();
+                    my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+                }
+                var goalLocation = GetMyGoal();
+                var distanceGoalBall = CommonTools.GetDistance(goalLocation, ball.Pos);
+
+                var distanceToBall = CommonTools.GetDistance(my_data.Pos, ball.Pos);
+                if (distanceGoalBall < 17)
+                {
+                    if (distanceToBall < Consts.KICKABLE_AREA)
+                    {
+                        m_robot.Kick(100, 30);
+                    }
+                    else
+                    {
+                        var relativeAngle = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos,
+                            ball.Pos.Value.X, ball.Pos.Value.Y);
+                        if (Math.Abs(relativeAngle) > 2)
+                        {
+                            m_robot.Turn(relativeAngle);
+                            m_memory.waitForNewInfo();
+                        }
+                        m_robot.Dash(10 * Math.Pow(distanceToBall,4));
+                        isInGoal = false;
+                    }
+                }
+                else
                 {
                     MoveToMyGoal();
-                    isInGoal = true;
-                }
-
-                var ball = FindObjectInView("ball");
-                while (ball.Distance.Value < 15)
-                {
-                    isInGoal = false;
-                    m_robot.Dash(100);
-                    Thread.Sleep(100);
-                    ball = FindObjectInView("ball");
-                    if (ball.Distance.Value < 1.885)
-                    {
-                        int angle = 30;
-                        if (IsPointingAt("flag b l 40",30) || IsPointingAt("flag t r 40", 30))
-                        {
-                            m_robot.Kick(100, -angle);
-                        }
-                        m_robot.Kick(100, angle);
-                        break;
-                    }
                 }
             }
 
-            //while (!m_timeOver)
-            //{
-            //    SeenObject ball = null;
-            //    SeenObject goal = null;
-
-            //    //Get current player's info:
-            //    var bodyInfo = GetBodyInfo();
-            //    Console.WriteLine($"Kicks so far : {bodyInfo.Kick}");
-
-            //    while (ball == null || ball.Distance > 1.5)
-            //    {
-            //        //Get field information from god (coach).
-            //        var ballPosByCoach = m_coach.GetSeenCoachObject("ball");
-            //        if (ballPosByCoach != null && ballPosByCoach.Pos != null)
-            //        {
-            //            Console.WriteLine($"Ball Position {ballPosByCoach.Pos.Value.X}, {ballPosByCoach.Pos.Value.Y}");
-            //        }
-
-            //        m_memory.waitForNewInfo();
-            //        ball = m_memory.GetSeenObject("ball");
-            //        if (ball == null)
-            //        {
-            //            // If you don't know where is ball then find it
-            //            m_robot.Turn(40);
-            //            m_memory.waitForNewInfo();
-            //        }
-            //        else if (ball.Distance > 1.5)
-            //        {
-            //            // If ball is too far then
-            //            // turn to ball or 
-            //            // if we have correct direction then go to ball
-            //            if (Math.Abs((double)ball.Direction) < 0)
-            //                m_robot.Turn(ball.Direction.Value);
-            //            else
-            //                m_robot.Dash(10 * ball.Distance.Value);
-            //        }
-            //    }
-
-            //    // We know where is ball and we can kick it
-            //    // so look for goal
-
-            //    while (goal == null)
-            //    {
-            //        m_memory.waitForNewInfo();
-            //        if (m_side == 'l')
-            //            goal = m_memory.GetSeenObject("goal r");
-            //        else
-            //            goal = m_memory.GetSeenObject("goal l");
-
-            //        if (goal == null)
-            //        {
-            //            m_robot.Turn(40);
-            //        }
-            //    }
-
-            //    m_robot.Kick(100, goal.Direction.Value);
-            //}
-
-            //// sleep one step to ensure that we will not send
-            //// two commands in one cycle.
-            //try
-            //{
-            //    Thread.Sleep(SoccerParams.simulator_step);
-            //}
-            //catch (Exception e)
-            //{
-
-            //}
         }
 
         private bool IsKickoff()
@@ -153,42 +100,61 @@ namespace player.Entities.Players
         }
 
         private void MoveToMyGoal()
-        {
+        {   
             var myGoal = GetMyGoal();
-            while (myGoal.Distance.Value > 1)
+            PointF position = GetRelativePosition(myGoal);
+            var my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
+            while (my_data == null)
             {
-                //m_robot.Turn(myGoal.Direction.Value);
-                m_robot.Dash(100);
-                Thread.Sleep(100);
-                myGoal = GetMyGoal();
+                m_memory.waitForNewInfo();
+                my_data = m_coach.GetSeenCoachObject("player " + m_team.m_teamName + " " + m_number);
             }
-        }
 
-        private SeenObject GetMyGoal()
-        {
-            SeenObject goal = null;
-
-            if (m_side == 'l')
-                goal = FindObjectInView("goal l");
-            else
-                goal = FindObjectInView("goal r");
-
-            return goal;
-        }
-
-        private SeenObject FindObjectInView(string objName)
-        {
-            m_memory.waitForNewInfo();
-            SeenObject myObj = null;
-            while (myObj == null)
+            double distance = CommonTools.GetDistance(my_data.Pos, position);
+            if (distance > 0.1)
             {
-                myObj = m_memory.GetSeenObject(objName);
-                if (myObj == null)
-                {
-                    m_robot.Turn(10);
+                var relativeAngle = CommonTools.GetRelativeAngle(my_data.BodyAngle, my_data.Pos, position.X, position.Y);
+                if (Math.Abs(relativeAngle) > 2) {
+                    m_robot.Turn(relativeAngle);
+                    m_memory.waitForNewInfo();
                 }
+                m_robot.Dash(10 * Math.Pow(distance,4));
             }
-            return myObj;
+        }
+
+        private PointF GetRelativePosition(PointF myGoal)
+        {
+            float distFromCenter = 5;
+            var ball = m_coach.GetSeenCoachObject("ball");
+            if (ball == null)
+            {
+                return myGoal;
+            }
+            double tetha = Math.Atan2(ball.Pos.Value.Y - myGoal.Y, ball.Pos.Value.X - myGoal.X);
+            return new PointF(myGoal.X + distFromCenter * (float)Math.Cos(tetha),
+                myGoal.Y + distFromCenter * (float)Math.Sin(tetha));
+        }
+
+        private PointF GetMyGoal()
+        {
+            return m_side == 'l' ? Consts.goal_l : Consts.goal_r;
+        }
+
+        private SeenCoachObject FindObjectInView(string objName)
+        {
+            return m_coach.GetSeenCoachObject(objName);
+            //m_memory.waitForNewInfo();
+            //SeenObject myObj = null;
+            //while (myObj == null)
+            //{
+            //    myObj = m_memory.GetSeenObject(objName);
+            //    if (myObj == null)
+            //    {
+            //        m_robot.Turn(10);
+            //    }
+            //}
+            //return myObj;
+
         }
 
         private bool IsPointingAt(string objName, double offset)

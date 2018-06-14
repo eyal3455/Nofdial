@@ -70,7 +70,7 @@ namespace player.Entities.Players
                         
                         if (directionToOpponentsGoal > 90 || directionToOpponentsGoal < -90)
                         {
-                            directionToOpponentsGoal /= directionToOpponentsGoal;
+                            directionToOpponentsGoal /= -Math.Abs(directionToOpponentsGoal);
                             directionToOpponentsGoal *= 90;
                         }
 
